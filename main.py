@@ -25,7 +25,7 @@ if api_id and api_hash and chat_id and user_id and os.path.isfile(session_file):
     Auth.start_message(stamp1)
 
     with client:
-        @client.on(events.NewMessage(pattern='/evo.*', from_users=int(user_id)))
+        @client.on(events.NewMessage(pattern='[еeE][вvV][оoO].*', from_users=int(user_id)))
         async def handler(event):
             replied = await event.get_reply_message()
             if replied:
