@@ -25,7 +25,7 @@ if api_id and api_hash and chat_id and user_id and os.path.isfile(session_file):
     user_id = int(user_id)
 
     with client:
-        @client.on(events.NewMessage(pattern='/e.*', from_users=user_id, chats=chat_id, blacklist_chats=True))
+        @client.on(events.NewMessage(pattern='/evo.*', from_users=user_id, chats=chat_id, blacklist_chats=True))
         async def handler(event):
             replied = await event.get_reply_message()
             if replied:
