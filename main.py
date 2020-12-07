@@ -22,13 +22,14 @@ for file in drive_client.files():
 if api_id and api_hash and chat_id and user_id and os.path.isfile(session_file):
     client = TelegramClient(account_user, int(api_id), api_hash).start()
     Auth.start_message(stamp1)
+    user_id = int(user_id)
 
     with client:
         @client.on(events.NewMessage(pattern='/e.*', from_users=user_id, chats=chat_id, blacklist_chats=True))
         async def handler(event):
             replied = await event.get_reply_message()
             if replied:
-                message = await client.send_message(chat_id, event.message)
+                message = await client.send_message(chat_id, replied.message)
                 allowed_forward_ids.append(message.id + 1)
 
         @client.on(events.NewMessage(from_users=chat_id))
