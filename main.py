@@ -21,11 +21,11 @@ for file in drive_client.files():
 
 if api_id and api_hash and chat_id and user_id and os.path.isfile(session_file):
     client = TelegramClient(account_user, int(api_id), api_hash).start()
+    forward_fraze = str(os.environ.get('forward_fraze'))
     Auth.start_message(stamp1)
-    user_id = int(user_id)
 
     with client:
-        @client.on(events.NewMessage(pattern='/evo.*', from_users=user_id, chats=chat_id, blacklist_chats=True))
+        @client.on(events.NewMessage(pattern='/evo.*', from_users=int(user_id)))
         async def handler(event):
             replied = await event.get_reply_message()
             if replied:
@@ -33,9 +33,11 @@ if api_id and api_hash and chat_id and user_id and os.path.isfile(session_file):
                 allowed_forward_ids.append(message.id + 1)
 
         @client.on(events.NewMessage(from_users=chat_id))
-        async def response_handler(response_event):
-            if response_event.message.id in allowed_forward_ids:
-                await client.forward_messages(-1001438204845, response_event.message)
+        async def response_handler(response):
+            if response.message.id in allowed_forward_ids:
+                await client.forward_messages(-1001438204845, response.message)
+            if str(response.message.message).startswith(forward_fraze):
+                await client.forward_messages(-1001367374268, response.message)
 
         client.run_until_disconnected()
 else:
