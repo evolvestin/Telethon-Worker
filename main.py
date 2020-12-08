@@ -5,8 +5,8 @@ from telethon.sync import TelegramClient, events
 stamp1 = objects.time_now()
 
 allowed_forward_ids = []
-account_user = 'evolvestin'
 objects.environmental_files()
+account_user = 'tele-evolvestin'
 api_id = os.environ.get('api_id')
 drive_client = Drive('google.json')
 user_id = os.environ.get('user_id')
@@ -25,7 +25,7 @@ if api_id and api_hash and chat_id and user_id and os.path.isfile(session_file):
     Auth.start_message(stamp1)
 
     with client:
-        @client.on(events.NewMessage(pattern='[eE][vV][oO][lL].*', from_users=int(user_id)))
+        @client.on(events.NewMessage(pattern='[eE][vV][oO][lL].*', from_users=[int(user_id), 'evolvestin']))
         async def handler(event):
             replied = await event.get_reply_message()
             if replied:
