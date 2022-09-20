@@ -5,17 +5,14 @@ import _thread
 from time import sleep
 from telethon.sync import TelegramClient, events
 from datetime import datetime, timezone, timedelta
+from telethon.tl.types import KeyboardButtonRow, KeyboardButtonUrl, ReplyInlineMarkup, KeyboardButtonCallback
 stamp1 = objects.time_now()
-
-allowed_forward_ids = []
 objects.environmental_files()
 users = eval(os.environ['users'])
-main_chat_id = os.environ['main_chat_id']
 Auth = objects.AuthCentre(ID_DEV=-1001312302092, TOKEN=os.environ['TOKEN'])
 
 if os.environ.get('local') is None:
-    drive_client = objects.GoogleDrive('google.json')
-    session_files = [f'{key}.session' for key in users]
+    drive_client, session_files = objects.GoogleDrive('google.json'), [f'{key}.session' for key in users]
     for file in drive_client.files():
         if file['name'] in session_files:
             drive_client.download_file(file['id'], file['name'])
@@ -23,21 +20,45 @@ if os.environ.get('local') is None:
 
 
 def client_init(name, user):
-    global allowed_forward_ids
+    holder = []
     asyncio.set_event_loop(asyncio.new_event_loop())
     client = TelegramClient(name, int(user['api_id']), user['api_hash']).start()
-    with client:
-        @client.on(events.NewMessage(pattern=user['pattern'], from_users=[*user['admins'], 'evolvestin']))
-        async def handler(event):
-            replied = await event.get_reply_message()
-            if replied:
-                message = await client.send_message(main_chat_id, replied.message)
-                allowed_forward_ids.append(message.id+1)
+    bot = TelegramClient('bot', int(user['api_id']), user['api_hash']).start(bot_token=user['control_token'])
 
-        @client.on(events.NewMessage(from_users=main_chat_id))
-        async def response_handler(response):
-            if response.message.id in allowed_forward_ids:
-                await client.forward_messages(user['f_chat_id'], response.message)
+    @bot.on(events.NewMessage(from_users=user['admins']))
+    async def bot_messages_handler(event):
+        if event.message.message:
+            message = await client.send_message(
+                user['main_bot'], event.message.message, formatting_entities=event.entities)
+            holder.append(message.from_id.user_id)
+
+    @bot.on(events.CallbackQuery(chats=user['admins']))
+    async def bot_queries_handler(event):
+        data = [int(i) for i in event.query.data.decode('utf-8').split('_')]
+        message = await client.get_messages(user['main_bot'], ids=[data[1]])
+        await message[0].click(data[0])
+        holder.append(event.query.user_id)
+
+    with client:
+        @client.on(events.NewMessage(from_users=user['main_bot']))
+        async def response_handler(event):
+            if holder and event.message.message:
+                rows, markup, chat_id, counter = [], event.reply_markup, holder.pop(0), 0
+                if type(markup) == ReplyInlineMarkup:
+                    for row in markup.rows:
+                        temp_row = []
+                        for button in row.buttons:
+                            if type(button) == KeyboardButtonCallback:
+                                temp_row.append(KeyboardButtonCallback(
+                                    button.text, f'{counter}_{event.id}'.encode('utf-8')))
+                                counter += 1
+                            elif type(button) == KeyboardButtonUrl:
+                                temp_row.append(KeyboardButtonUrl(button.text, button.url))
+                                counter += 1
+                        rows.append(KeyboardButtonRow(temp_row))
+                    markup = ReplyInlineMarkup(rows)
+                await bot.send_message(chat_id, event.message.message, buttons=markup,
+                                       formatting_entities=event.entities, link_preview=False)
         client.run_until_disconnected()
 
 
