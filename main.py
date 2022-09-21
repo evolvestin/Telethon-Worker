@@ -23,7 +23,7 @@ def client_init(name, user):
     holder = []
     asyncio.set_event_loop(asyncio.new_event_loop())
     client = TelegramClient(name, int(user['api_id']), user['api_hash']).start()
-    bot = TelegramClient('bot', int(user['api_id']), user['api_hash']).start(bot_token=user['control_token'])
+    bot = TelegramClient(f'bot-{name}', int(user['api_id']), user['api_hash']).start(bot_token=user['control_token'])
 
     @bot.on(events.NewMessage(from_users=user['admins']))
     async def bot_messages_handler(event):
