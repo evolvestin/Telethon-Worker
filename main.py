@@ -28,9 +28,8 @@ def client_init(name, user):
     @bot.on(events.NewMessage(from_users=user['admins']))
     async def bot_messages_handler(event):
         if event.message.message:
-            message = await client.send_message(
-                user['main_bot'], event.message.message, formatting_entities=event.entities)
-            holder.append(message.from_id.user_id)
+            await client.send_message(user['main_bot'], event.message.message, formatting_entities=event.entities)
+            holder.append(event.peer_id.user_id)
 
     @bot.on(events.CallbackQuery(chats=user['admins']))
     async def bot_queries_handler(event):
