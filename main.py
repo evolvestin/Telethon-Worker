@@ -5,6 +5,7 @@ import _thread
 from time import sleep
 from telethon.sync import TelegramClient, events
 from datetime import datetime, timezone, timedelta
+from telethon.tl.functions.messages import SetBotCallbackAnswerRequest
 from telethon.tl.types import KeyboardButtonRow, KeyboardButtonUrl, ReplyInlineMarkup, KeyboardButtonCallback
 stamp1 = objects.time_now()
 objects.environmental_files()
@@ -36,6 +37,7 @@ def client_init(name, user):
         data = [int(i) for i in event.query.data.decode('utf-8').split('_')]
         message = await client.get_messages(user['main_bot'], ids=[data[1]])
         await message[0].click(data[0])
+        await bot(SetBotCallbackAnswerRequest(event.query.query_id, 0))
         holder.append(event.query.user_id)
 
     with client:
