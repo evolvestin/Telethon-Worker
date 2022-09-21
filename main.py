@@ -30,6 +30,7 @@ def client_init(name, user):
         if event.message.message:
             message = await client.send_message(
                 user['main_bot'], event.message.message, formatting_entities=event.entities)
+            await client.forward_messages(user['f_chat_id'], event.message)
             holder.append(message.from_id.user_id)
 
     @bot.on(events.CallbackQuery(chats=user['admins']))
