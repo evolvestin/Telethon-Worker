@@ -29,16 +29,16 @@ def client_init(name, user):
     @bot.on(events.NewMessage(from_users=user['admins']))
     async def bot_messages_handler(event):
         if event.message.message:
-            await client.send_message(user['main_bot'], event.message.message, formatting_entities=event.entities)
             holder.append(event.peer_id.user_id)
+            await client.send_message(user['main_bot'], event.message.message, formatting_entities=event.entities)
 
     @bot.on(events.CallbackQuery(chats=user['admins']))
     async def bot_queries_handler(event):
+        holder.append(event.query.user_id)
         data = [int(i) for i in event.query.data.decode('utf-8').split('_')]
         message = await client.get_messages(user['main_bot'], ids=[data[1]])
         await message[0].click(data[0])
         await bot(SetBotCallbackAnswerRequest(event.query.query_id, 0))
-        holder.append(event.query.user_id)
 
     with client:
         @client.on(events.NewMessage(from_users=user['main_bot']))
