@@ -30,8 +30,6 @@ def client_init(name, user):
         if event.message.message:
             message = await client.send_message(
                 user['main_bot'], event.message.message, formatting_entities=event.entities)
-            await client.send_message(
-                user['f_chat_id'], event.message.message, formatting_entities=event.entities)
             holder.append(message.from_id.user_id)
 
     @bot.on(events.CallbackQuery(chats=user['admins']))
@@ -61,6 +59,7 @@ def client_init(name, user):
                     markup = ReplyInlineMarkup(rows)
                 await bot.send_message(chat_id, event.message.message, buttons=markup,
                                        formatting_entities=event.entities, link_preview=False)
+                await client.forward_messages(user['f_chat_id'], event.message)
         client.run_until_disconnected()
 
 
