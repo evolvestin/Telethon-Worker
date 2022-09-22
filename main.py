@@ -89,7 +89,7 @@ def client_init(name, user):
             pass
 
     with client:
-        @client.on(events.MessageEdited(chats=users['main_bot']))
+        @client.on(events.MessageEdited(chats=user['main_bot']))
         async def edited_handler(event):
             db = SQL('edit.db')
             record = db.request(f'SELECT * FROM edited WHERE original = {event.message.id}', fetchone=True)
