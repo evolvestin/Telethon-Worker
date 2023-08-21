@@ -118,6 +118,7 @@ def client_init(auth: objects.AuthCentre, name: str, user):
             client.run_until_disconnected()
     except IndexError and Exception:
         auth.dev.thread_except()
+        _thread.start_new_thread(client_init, (auth, name, user))
 
 
 def start(stamp: int = objects.time_now()):
