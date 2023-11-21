@@ -39,11 +39,11 @@ def set_inline_markup(event_id: int, markup: ReplyInlineMarkup = None):
         for row in markup.rows:
             temp_row = []
             for button in row.buttons:
-                if type(button) == KeyboardButtonCallback:
+                if type(button) is KeyboardButtonCallback:
                     temp_row.append(KeyboardButtonCallback(
                         button.text, f'{counter}_{event_id}'.encode('utf-8')))
                     counter += 1
-                elif type(button) == KeyboardButtonUrl:
+                elif type(button) is KeyboardButtonUrl:
                     temp_row.append(KeyboardButtonUrl(button.text, button.url))
                     counter += 1
             rows.append(KeyboardButtonRow(temp_row))
@@ -104,20 +104,23 @@ def client_init(auth: objects.AuthCentre, name: str, user):
             async def response_handler(event):
                 if holder and event.message.message:
                     db, markup, chat_id = SQL('edit.db'), event.reply_markup, holder.pop(0)
-                    if type(markup) == ReplyInlineMarkup:
+                    if type(markup) is ReplyInlineMarkup:
                         markup = set_inline_markup(event.id, markup)
                         db.request(f'INSERT INTO edited '
                                    f'(original, control, user_id) VALUES ({event.id}, NULL, {chat_id})')
                     response = await bot.send_message(chat_id, event.message.message, buttons=markup,
                                                       formatting_entities=event.entities, link_preview=False)
-                    if type(markup) == ReplyInlineMarkup:
+                    if type(markup) is ReplyInlineMarkup:
                         db.request(f'UPDATE edited SET control = {response.id} WHERE original = {event.id}')
                     db.close()
                 await client.forward_messages(user['f_chat_id'], event.message)
             auth.dev.printer(f'{name} запущен')
             client.run_until_disconnected()
-    except IndexError and Exception:
-        auth.dev.thread_except()
+    except IndexError and Exception as error:
+        try:
+            auth.dev.thread_except()
+        except IndexError and Exception:
+            auth.dev.printer(f'Не удалось отправить ошибку ({error}). Стартуем заново client_init()')
         _thread.start_new_thread(client_init, (auth, name, user))
 
 
